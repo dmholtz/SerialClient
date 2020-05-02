@@ -1,1 +1,3 @@
 SerialClient	KEYWORD1
+protocolSetup   KEYWORD2
+receive KEYWORD2

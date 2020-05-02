@@ -18,10 +18,31 @@ class SerialClient
   public:
 	SerialClient();
 
-    // setup, receive, send operations
+    /**
+     * Expects an incoming protocol setup message. Returns true, if protocol
+     * setup is successfull and updates internal parameters for future communication.
+     * 
+     * Awaits four incoming bytes to define the protocol.
+     * 1. byte: must be SETUP_INIT_BYTE
+     * 2. byte: integer representation: 1, 2 or 4
+     * 3. byte: message length: positive integer > 0
+     * 4. byte: batch size: positive integer > 0
+     * */
     bool protocolSetup();
-    //bool receive1ByteInts(byte & commands_ref, int8_t & params);
-    bool receive2ByteInts(byte* commands_ref, int16_t* params);
+
+    /**
+     * Receives a message according to the protocol specified during protocol setup.
+     * A message consists of a batch of commands, each of them have messageLength
+     * parameters.
+     * 
+     * @requires: params.size == messageLength * batchSize
+     * @requires: commands.size == batchSize
+     * @requires: this->intRepresentation <= 2;
+     * 
+     * @return true if messages have been received sucessfully and false otherwise
+     * */
+    bool receive(byte* commands, int16_t* params);
+    
     void send();
 
     // Queries

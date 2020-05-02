@@ -30,6 +30,9 @@ SerialClient::SerialClient()
 bool SerialClient::protocolSetup()
 {
     // Await the setup initialization byte
+    int intRepresentation = 0;
+    int batchSize = 0;
+    int messageLength = 0;
     while (Serial.available() < 1)
     {
     }
@@ -41,12 +44,8 @@ bool SerialClient::protocolSetup()
     while (Serial.available() < 1)
     {
     }
-    int intRep = Serial.read();
-    if (intRep == 2 || intRep == 1 || intRep == 4)
-    {
-        intRepresentation = intRep;
-    }
-    else
+    intRepresentation = Serial.read();
+    if (intRepresentation != 2 && intRepresentation != 1 && intRepresentation != 4)
     {
         return false;
     }
@@ -54,12 +53,8 @@ bool SerialClient::protocolSetup()
     while (Serial.available() < 1)
     {
     }
-    int msgLen = Serial.read();
-    if (msgLen >= 1)
-    {
-        messageLength = msgLen;
-    }
-    else
+    messageLength = Serial.read();
+    if (messageLength <= 0)
     {
         return false;
     }
@@ -67,20 +62,21 @@ bool SerialClient::protocolSetup()
     while (Serial.available() < 1)
     {
     }
-    int batch = Serial.read();
-    if (batch >= 1)
-    {
-        batchSize = batch;
-    }
-    else
+    batchSize = Serial.read();
+    if (batchSize <= 0)
     {
         return false;
     }
     Serial.println();
+
+    this->messageLength = messageLength;
+    this->intRepresentation = intRepresentation;
+    this->batchSize = batchSize;
+
     return true;
 }
 
-bool SerialClient::receive2ByteInts(byte* commands_ref, int16_t* params)
+bool SerialClient::receive(byte* commands, int16_t* params)
 {
     awaitIncomingByte();
     if (Serial.peek() == SETUP_INIT_BYTE)
@@ -93,7 +89,7 @@ bool SerialClient::receive2ByteInts(byte* commands_ref, int16_t* params)
         for (int i = 0; i < batchSize; i++)
         {
             awaitIncomingByte();
-            commands_ref[i] = Serial.read();
+            commands[i] = Serial.read();
             for (int j = 0; j < messageLength; j++)
             {
                 int param = 0;
